@@ -29,7 +29,7 @@
     online: false, loaded: false, busy: false, refreshing: false,
     query: "", filter: "todos", selectedId: null, drawerTab: "reparo",
     stepDraft: "", partDraft: "", reviewId: null,
-    labOrder: "", labSize: 8, labResult: null, confirmation: null
+    confirmation: null
   };
 
   class ApiClient {
@@ -82,8 +82,8 @@
   }
   function heading(title, subtitle, { eyebrow = "SEU ESPAÇO DE TRABALHO", create = true } = {}) {
     const date = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "long" }).format(new Date());
-    
-      
+    return `<div class="page-heading"><div><span class="eyebrow">${escape(eyebrow)}</span><h1>${escape(title)}</h1><p>${escape(subtitle)}</p></div>
+      ${create ? `<div class="heading-actions"><span class="date-label">${icon("calendar")}${escape(date)}</span><button class="button button-primary" data-action="new-order">${icon("plus")}<span>Nova ordem de serviço</span></button></div>` : ""}</div>`;
   }
   function stats() {
     const counts = state.report.por_status;
@@ -169,7 +169,7 @@
       counts[order.equipamento.tipo] = (counts[order.equipamento.tipo] || 0) + 1;
       return counts;
     }, Object.create(null));
-    return heading("Uma visão clara do seu trabalho.", { eyebrow: "RELATÓRIOS", create: false }) + stats() +
+    return heading("Uma visão clara do seu trabalho.", "Os números da sessão, atualizados a cada atendimento.", { eyebrow: "RELATÓRIOS", create: false }) + stats() +
       `<div class="report-grid"><section class="panel"><header class="panel-header"><div><h2>Situação dos atendimentos</h2><p>Distribuição de todas as ordens cadastradas.</p></div></header><div class="panel-body">
       ${Object.entries(STATUS).map(([value, info]) => {
         const count = state.report.por_status[value] || 0;
@@ -179,22 +179,11 @@
       empty("Aguardando o primeiro cadastro", "Os tipos de equipamento aparecerão aqui.", { compact: true })}</div></section></div>`;
   }
   function renderLab() {
-    const options = state.orders.map((order) => `<option value="${escape(order.id)}" ${state.labOrder === order.id ? "selected" : ""}>${escape(order.id)} · ${escape(order.cliente.nome)}</option>`).join("");
-    return heading("Por dentro do TecnoReparo.") +
-      `<div class="lab-intro">${icon("code")}<p>Consulte a distribuição dos equipamentos e a sequência dos próximos atendimentos, com base nas ordens de serviço cadastradas.</p></div>
-      <div class="lab-grid"><section class="panel"><header class="panel-header"><div><h2>Vetor de bancadas</h2></div></header><div class="panel-body"><div class="structure-strip">${state.workshop.bancadas.map((bench) => `<div class="structure-node"><small>ÍNDICE ${bench.indice}</small>${escape(bench.ordem_id || "Livre")}</div>`).join("")}</div></div></section>
-      <section class="panel"><header class="panel-header"><div><h2>Fila de atendimento</h2></div></header><div class="panel-body"><div class="structure-strip">${state.workshop.fila.length ? state.workshop.fila.map((id, i) => `${i ? icon("arrow") : ""}<div class="structure-node"><small>${i ? "EM ESPERA" : "INÍCIO"}</small>${escape(id)}</div>`).join("") : `<p class="helper-text">A fila está vazia.</p>`}</div></div></section>
-      <form id="lab-form" class="lab-form"><label class="field">Ordem de serviço<select id="lab-order" required>${options || '<option value="">Cadastre uma ordem primeiro</option>'}</select></label>
-      <label class="field">Busca<input id="lab-size" type="number" min="1" max="500" step="1" required value="${state.labSize}"></label>
-      <button class="button button-primary" type="submit" ${!state.orders.length ? "disabled" : ""}>${icon("code")}Executar </button></form><div id="lab-result">${labResults()}</div></div></section></div>`;
-  }
-  function labResults() {
-    const result = state.labResult;
-    if (!result) return "";
-    return `<div class="lab-result" role="status"><div class="lab-result-box"><h3>Recursão</h3><p>Simples: ${result.recursao.simples.etapas_contadas} etapas na lista.</p><code>Tempo O(n) · memória O(n)</code><p>Dupla: ${result.recursao.dupla.bancadas_ocupadas} bancadas ocupadas.</p><code>Tempo O(B) · memória O(log B)</code></div>
-      <div class="lab-result-box"><h3>Cópias de dados</h3><p>Rasa compartilha as etapas: <strong>${result.copias.rasa_compartilha_lista_interna ? "sim" : "não"}</strong>.</p><p>Profunda compartilha as etapas: <strong>${result.copias.profunda_compartilha_lista_interna ? "sim" : "não"}</strong>.</p><p>Ordem original preservada: <strong>${result.copias.ordem_real_preservada ? "sim" : "não"}</strong>.</p></div>
-      <div class="lab-result-box"><h3>Comparações na busca</h3><div class="comparison-row"><span>Melhor caso</span><strong>${result.busca.melhor_caso.comparacoes} · O(1)</strong></div><div class="comparison-row"><span>Caso médio</span><strong>${new Intl.NumberFormat("pt-BR").format(result.busca.caso_medio.comparacoes)} · O(n)</strong></div><div class="comparison-row"><span>Pior caso</span><strong>${result.busca.pior_caso.comparacoes} · O(n)</strong></div></div></div>
-      <p class="lab-footnote">Ordem ${escape(result.id)}. A média considera busca bem-sucedida com posições equiprováveis. A demonstração de cópias não altera o cadastro. O experimento executa n buscas; o custo total do experimento é O(n²).</p>`;
+    return heading("Por dentro do TecnoReparo.", "Explore as estruturas de dados que organizam o sistema.", { eyebrow: "LABORATÓRIO · UNIDADE I", create: false }) +
+      `<div class="lab-intro">${icon("code")}<p>Os dados abaixo vêm do backend Python. Vetor, lista encadeada, fila, pilha e deque trabalham juntos nos atendimentos.</p></div>
+      <div class="lab-grid"><section class="panel"><header class="panel-header"><div><h2>Vetor de bancadas</h2><p>Acesso por índice: O(1).</p></div></header><div class="panel-body"><div class="structure-strip">${state.workshop.bancadas.map((bench) => `<div class="structure-node"><small>ÍNDICE ${bench.indice}</small>${escape(bench.ordem_id || "Livre")}</div>`).join("")}</div></div></section>
+      <section class="panel"><header class="panel-header"><div><h2>Fila de atendimento</h2><p>O primeiro a entrar é o primeiro a sair.</p></div></header><div class="panel-body"><div class="structure-strip">${state.workshop.fila.length ? state.workshop.fila.map((id, i) => `${i ? icon("arrow") : ""}<div class="structure-node"><small>${i ? "EM ESPERA" : "INÍCIO"}</small>${escape(id)}</div>`).join("") : `<p class="helper-text">A fila está vazia.</p>`}</div></div></section>
+      </div>`;
   }
 
   function renderView({ animate = false } = {}) {
@@ -241,7 +230,6 @@
       state.report = report;
       const firstLoad = !state.loaded;
       state.loaded = true;
-      if (!state.labOrder || !getOrder(state.labOrder)) state.labOrder = orders[0]?.id || "";
       setConnection(true);
       renderView({ animate: firstLoad });
       if ($("#order-drawer").open) renderDrawer();
@@ -472,15 +460,11 @@
       if (focused && $("#order-drawer").open && !document.activeElement.closest("button, input, textarea, select, a")) {
         $('#order-drawer [data-action="toggle-step"][data-step="' + checkbox.dataset.step + '"]')?.focus({ preventScroll: true });
       }
-    } else if (event.target.id === "lab-order") {
-      state.labOrder = event.target.value;
-      state.labResult = null;
-      $("#lab-result").innerHTML = "";
     }
   });
   document.addEventListener("submit", async (event) => {
     const form = event.target;
-    if (!["new-order-form", "review-form", "step-form", "part-form", "lab-form"].includes(form.id)) return;
+    if (!["new-order-form", "review-form", "step-form", "part-form"].includes(form.id)) return;
     event.preventDefault();
     const submit = form.querySelector('button[type="submit"]');
     if (form.id === "new-order-form") {
@@ -504,26 +488,6 @@
       const text = $("#part-input").value;
       const result = await mutate(submit, () => api.request("/api/ordens/" + id + "/pecas/retirar", { method: "POST", data: { peca: text } }), "Peça registrada. Ela será a próxima a ser recolocada.");
       if (result) { state.partDraft = ""; renderDrawer(); if ($("#order-drawer").open) $("#part-input")?.focus({ preventScroll: true }); }
-    } else if (form.id === "lab-form") {
-      const id = $("#lab-order").value;
-      const size = Number($("#lab-size").value);
-      if (!id) return;
-      state.labOrder = id;
-      state.labSize = size;
-      submit.disabled = true;
-      submit.classList.add("is-loading");
-      try {
-        const [recursao, copias, busca] = await Promise.all([
-          api.request("/api/ordens/" + id + "/recursao"),
-          api.request("/api/ordens/" + id + "/copias"),
-          api.request("/api/analises/busca?tamanho=" + size)
-        ]);
-        if (state.labOrder === id) {
-          state.labResult = { id, recursao, copias, busca };
-          if ($("#lab-result")) $("#lab-result").innerHTML = labResults();
-        }
-      } catch (error) { toast(error.message, true); }
-      finally { submit.disabled = false; submit.classList.remove("is-loading"); }
     }
   });
 
