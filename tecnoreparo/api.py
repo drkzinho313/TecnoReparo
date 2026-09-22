@@ -8,7 +8,7 @@ import re
 from dataclasses import dataclass
 from http import HTTPStatus
 from typing import Callable
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, urlsplit
 
 from .modelos import ConflitoError, NaoEncontradoError, ValidacaoError
 from .servico import TecnoReparo
@@ -56,7 +56,7 @@ class ApiTecnoReparo:
         s = self.servico
         self._rota("GET", "/", lambda p, b, q: {
             "projeto": "TecnoReparo",
-            "versao": "1.0.0",
+            "versao": "2.0.0",
             "armazenamento": "em_memoria",
             "rotas": [
                 {"metodo": r.metodo, "caminho": r.caminho, "campos_json": sorted(r.permitidos)}
@@ -183,11 +183,36 @@ class ApiTecnoReparo:
         resultado = rota.acao(match.groupdict(), corpo, query)
         return rota.status, {"dados": resultado}, []
 
+    def _origem_autorizada(self, origem: str, environ: dict) -> bool:
+        if origem in self._origens:
+            return True
+        esquema = environ.get("wsgi.url_scheme", "http")
+        host = environ.get("HTTP_HOST") or (
+            environ.get("SERVER_NAME", "localhost") + ":" + environ.get("SERVER_PORT", "80")
+        )
+        try:
+            recebida = urlsplit(origem)
+            local = urlsplit(esquema + "://" + host)
+            porta_recebida = recebida.port if recebida.port is not None else (443 if recebida.scheme == "https" else 80)
+            porta_local = local.port if local.port is not None else (443 if local.scheme == "https" else 80)
+            return (
+                recebida.scheme in ("http", "https")
+                and recebida.scheme == local.scheme
+                and recebida.hostname == local.hostname
+                and porta_recebida == porta_local
+                and recebida.username is None and recebida.password is None
+                and recebida.path in ("", "/")
+                and not recebida.query and not recebida.fragment
+            )
+        except ValueError:
+            return False
+
     def __call__(self, environ: dict, start_response: Callable) -> list[bytes]:
         origem = environ.get("HTTP_ORIGIN")
+        autorizada = bool(origem) and self._origem_autorizada(origem, environ)
         extras: list[tuple[str, str]] = []
         try:
-            if origem and origem not in self._origens:
+            if origem and not autorizada:
                 raise ErroHTTP(403, "Origem do frontend não autorizada nesta configuração.")
             codigo, resposta, extras = self._despachar(environ)
         except ErroHTTP as erro:
@@ -209,7 +234,7 @@ class ApiTecnoReparo:
             ("Content-Length", str(len(corpo))),
             ("Cache-Control", "no-store"),
         ] + extras
-        if origem in self._origens:
+        if autorizada:
             cabecalhos += [
                 ("Access-Control-Allow-Origin", origem),
                 ("Vary", "Origin"),

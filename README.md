@@ -2,9 +2,10 @@
 
 **Simulador de Gestão de Assistência Técnica**
 
-Backend acadêmico em Python com Programação Orientada a Objetos (POO).
-Implementa vetores, listas encadeadas, filas, pilhas e deques; inclui recursão,
-análise de complexidade e os recursos de Python pedidos inicialmente.
+Aplicação acadêmica com backend Python em Programação Orientada a Objetos (POO)
+e interface responsiva em HTML5, CSS3 e JavaScript puro. Implementa vetores,
+listas encadeadas, filas, pilhas e deques; inclui recursão, análise de
+complexidade e os recursos de Python pedidos inicialmente.
 
 ## Executar
 
@@ -14,19 +15,18 @@ Usa somente a biblioteca padrão: não é necessário instalar pacotes com pip.
 Extraia o ZIP, abra um terminal dentro da pasta `tecnoreparo_backend` e execute:
 
 ~~~bash
-python demo.py
-~~~
-
-Esse comando apresenta uma demonstração completa no terminal e encerra.
-Para iniciar a API com três equipamentos fictícios:
-
-~~~bash
 python main.py --demo
 ~~~
 
-A API ficará em [http://127.0.0.1:8000](http://127.0.0.1:8000).
-A raiz mostra as rotas; `/api/estado` mostra as bancadas e as filas.
-Sem `--demo`, o sistema começa vazio.
+Abra [http://127.0.0.1:8000](http://127.0.0.1:8000) no navegador.
+Esse único comando entrega a interface e a API juntas. Não abra `index.html`
+diretamente: as ações precisam do servidor Python. Deixe o terminal aberto
+enquanto utiliza o sistema e pressione Ctrl+C para encerrar.
+
+O modo `--demo` inclui três equipamentos e clientes fictícios. Sem `--demo`,
+o sistema começa vazio. O catálogo JSON está em `/api`; `/api/estado` mostra
+as bancadas e as filas. Para uma demonstração só no terminal, execute
+`python demo.py`.
 
 ~~~bash
 python main.py --bancadas 5 --porta 8001
@@ -38,9 +38,41 @@ No Windows, também é possível usar `py -3`.
 
 **Escopo desta versão:** estado em memória, para execução local e apresentação
 acadêmica. Encerrar o processo apaga os cadastros. A API não inclui banco de
-dados, autenticação ou conexão automática com o esboço visual anterior.
+dados ou autenticação. A interface usa os dados reais dessa API local.
 O servidor `wsgiref` é a implementação de referência do Python, destinada aqui
 ao uso local; não é um servidor de produção.
+
+## Interface web
+
+- **Visão geral:** contadores, bancadas ocupadas ou disponíveis, fila e ordens recentes.
+- **Ordens de serviço:** cadastro, busca por cliente/equipamento/ID e filtros de situação.
+- **Detalhes do reparo:** painel lateral com etapas, peças retiradas, histórico e conclusão.
+- **Revisões:** pedidos comuns ou urgentes, atendimento e cancelamento pelas duas pontas.
+- **Relatórios:** distribuição das ordens e tipos de equipamento cadastrados.
+- **Laboratório:** visualização do vetor e da fila, recursão, cópias e comparações na busca.
+
+O visual usa fundo claro, navegação verde-escura, cartões e ícones SVG locais.
+Inclui abertura animada, skeleton de carregamento, barra de progresso das
+requisições, indicadores nos botões, efeito de onda no clique, transições de
+telas, janelas e notificações. A preferência do sistema por movimento reduzido
+é respeitada. O CSS adapta a navegação, as tabelas e os formulários para telas menores.
+
+Nenhum framework, CDN, pacote npm, conexão externa ou etapa de compilação é
+necessário. As alterações são enviadas à API por `fetch`; o frontend não mantém
+um cadastro paralelo. Após cada alteração, busca novamente o estado do servidor.
+
+Roteiro rápido para apresentação:
+
+1. Inicie com `--demo` e observe as três bancadas e a fila de espera.
+2. Abra a primeira bancada, marque as etapas e recoloque a peça **Tampa**.
+3. Conclua o atendimento: a bancada fica disponível.
+4. Solicite uma revisão na ordem concluída e consulte a tela **Revisões**.
+5. Cadastre outra ordem e use **Atender próximo** para mostrar a ordem FIFO.
+6. Abra **Laboratório**, escolha uma ordem e execute a demonstração.
+
+Se o servidor for encerrado, a próxima requisição mostrará o erro. Reinicie o
+servidor e clique em **Atualizar dados** ou **Tentar novamente**; os cadastros
+anteriores não são recuperados, pois esta versão armazena tudo em memória.
 
 ## Alinhamento com a Unidade I
 
@@ -95,9 +127,14 @@ permanece intacto. Os endpoints retornam dados novos, sem expor os nós internos
 | `tecnoreparo/modelos.py` | Equipamento, etapa, solicitação de revisão e ordem de serviço. |
 | `tecnoreparo/servico.py` | Cadastro, atendimento, regras, relatórios e demonstrações. |
 | `tecnoreparo/api.py` | Tradução entre HTTP/JSON e chamadas ao serviço. |
+| `tecnoreparo/web.py` | Entrega da interface e dos arquivos estáticos na mesma origem da API. |
+| `frontend/index.html` | Navegação e formulários acessíveis. |
+| `frontend/styles.css` | Visual, responsividade e animações CSS3. |
+| `frontend/app.js` | Telas, efeitos de clique, formulários e integração com a API. |
+| `frontend/*.svg` | Marca e ícones locais. |
 | `main.py` | Inicialização do servidor local. |
 | `demo.py` | Apresentação dos conceitos no terminal, sem servidor. |
-| `tests/` | Testes das estruturas, do fluxo e da API. |
+| `tests/` | Testes das estruturas, do fluxo, da API e da entrega da interface. |
 
 - **Abstração:** cada estrutura expõe operações próprias, como `enfileirar` e
   `empilhar`, sem exigir que o chamador manipule os nós.
@@ -207,7 +244,7 @@ IDs de etapas não são reutilizados.
 
 | Método | Caminho | Corpo JSON ou parâmetro |
 | --- | --- | --- |
-| GET | `/` | Catálogo de rotas |
+| GET | `/api` | Catálogo de rotas JSON; `/` abre a interface |
 | GET | `/api/estado` | Bancadas, fila e revisões |
 | GET | `/api/relatorio` | Contagens por status |
 | GET | `/api/ordens` | Filtro opcional `?status=aguardando` |
@@ -244,26 +281,32 @@ Status: `aguardando`, `em_reparo`, `concluida`, `aguardando_revisao`.
 Erros comuns: 400 (dados inválidos), 404 (não encontrado), 405 (método),
 409 (conflito de estado), 413 (tamanho) e 415 (tipo de conteúdo).
 
-Uma futura interface executada em outra origem pode usar:
+A interface incluída já funciona na mesma origem, sem configurar CORS.
+Se você desenvolver outra interface em uma origem diferente, pode usar:
 
 ~~~bash
 python main.py --demo --origem-frontend http://localhost:5173
 ~~~
 
 Informe a origem real da interface. O parâmetro pode ser repetido.
-O CORS responde a OPTIONS e permite somente as origens configuradas.
-O frontend deverá substituir seus dados locais por chamadas à API.
+O CORS responde a OPTIONS e permite a mesma origem do servidor e as origens
+adicionais configuradas. Essa opção não é necessária para a interface incluída.
 
 ## Verificação e apresentação
 
 Os testes incluem FIFO, LIFO, integridade das pontas do deque, remoção de nós
 no início/meio/fim, vetores cheios, ciclo completo de atendimento, conflitos,
-cópias independentes, recursão, validação JSON, CORS e requisições a um
-servidor HTTP real em uma porta local temporária. `collections.deque` aparece
+cópias independentes, recursão, validação JSON, CORS, entrega dos arquivos da
+interface, bloqueio de caminhos não publicados e requisições a um servidor
+HTTP real em uma porta local temporária. `collections.deque` aparece
 somente nos testes, como referência para conferir a implementação manual.
 
-Para apresentar: execute `demo.py`, explique as cinco estruturas, mostre
-as classes em `estruturas.py`, compare as cópias e finalize com a busca e os testes.
+Verificação desta entrega: testes Python e sintaxe JavaScript. O navegador
+remoto de testes bloqueou o acesso ao endereço local, portanto a conferência
+visual e as interações completas no navegador não foram realizadas aqui.
+
+Para apresentar o código: execute `demo.py`, explique as cinco estruturas,
+mostre as classes em `estruturas.py`, compare as cópias e finalize com a busca.
 
 ## Referências
 

@@ -5,10 +5,11 @@ from wsgiref.simple_server import make_server
 
 from tecnoreparo import TecnoReparo
 from tecnoreparo.api import ApiTecnoReparo
+from tecnoreparo.web import AplicacaoTecnoReparo
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="TecnoReparo - backend acadêmico em POO")
+    parser = argparse.ArgumentParser(description="TecnoReparo - interface web e backend acadêmico em POO")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--porta", type=int, default=8000)
     parser.add_argument("--bancadas", type=int, default=3)
@@ -19,18 +20,23 @@ def main() -> None:
         parser.error("Use 1..1000 bancadas e porta 1..65535.")
     servico = TecnoReparo(args.bancadas)
     if args.demo:
-        for i, tipo in enumerate(("Desktop", "Notebook", "Desktop"), start=1):
+        exemplos = (
+            ("Marina Costa", "Notebook", "Desliga durante o uso", ["Aquecimento", "Desliga"]),
+            ("Lucas Almeida", "Desktop", "Liga, mas não exibe imagem", ["Sem imagem"]),
+            ("Beatriz Souza", "Notebook", "Teclado com falhas intermitentes", ["Teclado"]),
+        )
+        for i, (nome, tipo, defeito, sintomas) in enumerate(exemplos, start=1):
             servico.registrar_ordem(
-                nome_cliente=f"Cliente fictício {i}",
+                nome_cliente=nome,
                 contato=f"Contato de demonstração {i}",
                 numero_serie=f"DEMO-{i}",
                 tipo=tipo,
-                defeito="Equipamento não liga",
-                sintomas=["Não liga", "não liga", "Sem imagem"],
+                defeito=defeito,
+                sintomas=sintomas,
             )
         primeira = servico.atender_proximo()
         servico.retirar_peca(primeira["id"], "Tampa")
-    app = ApiTecnoReparo(servico, tuple(args.origem_frontend))
+    app = AplicacaoTecnoReparo(ApiTecnoReparo(servico, tuple(args.origem_frontend)))
     with make_server(args.host, args.porta, app) as servidor:
         print(f"TecnoReparo: http://{args.host}:{args.porta}", flush=True)
         print("Dados em memória: são reiniciados ao encerrar. Ctrl+C para sair.", flush=True)
