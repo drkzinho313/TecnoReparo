@@ -82,8 +82,8 @@
   }
   function heading(title, subtitle, { eyebrow = "SEU ESPAÇO DE TRABALHO", create = true } = {}) {
     const date = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "long" }).format(new Date());
-    return `<div class="page-heading"><div><span class="eyebrow">${escape(eyebrow)}</span><h1>${escape(title)}</h1><p>${escape(subtitle)}</p></div>
-      ${create ? `<div class="heading-actions"><span class="date-label">${icon("calendar")}${escape(date)}</span><button class="button button-primary" data-action="new-order">${icon("plus")}<span>Nova ordem de serviço</span></button></div>` : ""}</div>`;
+    
+      
   }
   function stats() {
     const counts = state.report.por_status;
@@ -169,7 +169,7 @@
       counts[order.equipamento.tipo] = (counts[order.equipamento.tipo] || 0) + 1;
       return counts;
     }, Object.create(null));
-    return heading("Uma visão clara do seu trabalho.", "Os números da sessão, atualizados a cada atendimento.", { eyebrow: "RELATÓRIOS", create: false }) + stats() +
+    return heading("Uma visão clara do seu trabalho.", { eyebrow: "RELATÓRIOS", create: false }) + stats() +
       `<div class="report-grid"><section class="panel"><header class="panel-header"><div><h2>Situação dos atendimentos</h2><p>Distribuição de todas as ordens cadastradas.</p></div></header><div class="panel-body">
       ${Object.entries(STATUS).map(([value, info]) => {
         const count = state.report.por_status[value] || 0;
@@ -180,14 +180,13 @@
   }
   function renderLab() {
     const options = state.orders.map((order) => `<option value="${escape(order.id)}" ${state.labOrder === order.id ? "selected" : ""}>${escape(order.id)} · ${escape(order.cliente.nome)}</option>`).join("");
-    return heading("Por dentro do TecnoReparo.", "Explore as estruturas de dados que organizam o sistema.", { eyebrow: "LABORATÓRIO · UNIDADE I", create: false }) +
+    return heading("Por dentro do TecnoReparo.") +
       `<div class="lab-intro">${icon("code")}<p>Consulte a distribuição dos equipamentos e a sequência dos próximos atendimentos, com base nas ordens de serviço cadastradas.</p></div>
-      <div class="lab-grid"><section class="panel"><header class="panel-header"><div><h2>Vetor de bancadas</h2><p>Acesso por índice: O(1).</p></div></header><div class="panel-body"><div class="structure-strip">${state.workshop.bancadas.map((bench) => `<div class="structure-node"><small>ÍNDICE ${bench.indice}</small>${escape(bench.ordem_id || "Livre")}</div>`).join("")}</div></div></section>
-      <section class="panel"><header class="panel-header"><div><h2>Fila de atendimento</h2><p>O primeiro a entrar é o primeiro a sair.</p></div></header><div class="panel-body"><div class="structure-strip">${state.workshop.fila.length ? state.workshop.fila.map((id, i) => `${i ? icon("arrow") : ""}<div class="structure-node"><small>${i ? "EM ESPERA" : "INÍCIO"}</small>${escape(id)}</div>`).join("") : `<p class="helper-text">A fila está vazia.</p>`}</div></div></section>
-      <section class="panel panel-wide"><header class="panel-header"><div><h2>Recursão, cópias e complexidade</h2><p>Escolha uma ordem para executar as demonstrações no servidor.</p></div></header><div class="panel-body">
+      <div class="lab-grid"><section class="panel"><header class="panel-header"><div><h2>Vetor de bancadas</h2></div></header><div class="panel-body"><div class="structure-strip">${state.workshop.bancadas.map((bench) => `<div class="structure-node"><small>ÍNDICE ${bench.indice}</small>${escape(bench.ordem_id || "Livre")}</div>`).join("")}</div></div></section>
+      <section class="panel"><header class="panel-header"><div><h2>Fila de atendimento</h2></div></header><div class="panel-body"><div class="structure-strip">${state.workshop.fila.length ? state.workshop.fila.map((id, i) => `${i ? icon("arrow") : ""}<div class="structure-node"><small>${i ? "EM ESPERA" : "INÍCIO"}</small>${escape(id)}</div>`).join("") : `<p class="helper-text">A fila está vazia.</p>`}</div></div></section>
       <form id="lab-form" class="lab-form"><label class="field">Ordem de serviço<select id="lab-order" required>${options || '<option value="">Cadastre uma ordem primeiro</option>'}</select></label>
-      <label class="field">Tamanho do vetor de busca<input id="lab-size" type="number" min="1" max="500" step="1" required value="${state.labSize}"></label>
-      <button class="button button-primary" type="submit" ${!state.orders.length ? "disabled" : ""}>${icon("code")}Executar demonstração</button></form><div id="lab-result">${labResults()}</div></div></section></div>`;
+      <label class="field">Busca<input id="lab-size" type="number" min="1" max="500" step="1" required value="${state.labSize}"></label>
+      <button class="button button-primary" type="submit" ${!state.orders.length ? "disabled" : ""}>${icon("code")}Executar </button></form><div id="lab-result">${labResults()}</div></div></section></div>`;
   }
   function labResults() {
     const result = state.labResult;
