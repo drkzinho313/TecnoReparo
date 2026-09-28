@@ -256,6 +256,9 @@ class TecnoReparo:
             "por_status": por_status,
             "tipos_de_equipamento": sorted(tipos),
             "indices_bancadas_livres": livres,
+            "bancadas_ocupadas": len(self._bancadas) - len(livres),
+            "ordens_na_fila": len(self._fila),
+            "revisoes_pendentes": len(self._revisoes),
         }
 
     def analisar_recursao(self, ordem_id: str) -> dict:
@@ -316,3 +319,5 @@ class TecnoReparo:
             "ausente": {"comparacoes": vetor.buscar(-1).comparacoes, "tempo": "O(n)"},
             "nota": "Os custos descrevem uma busca. O experimento faz n buscas e custa O(n²).",
         }
+        
+        
