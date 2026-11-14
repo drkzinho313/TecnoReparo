@@ -1,0 +1,579 @@
+{
+  "gerado_em_utc": "2026-11-09T22:52:27.584469+00:00",
+  "python": "3.12.14",
+  "matplotlib": "3.10.8",
+  "sistema": "Linux",
+  "aviso": "Exemplos fictícios. Tempos medidos nesta execução, não valores universais.",
+  "hash": {
+    "divisao": {
+      "aviso": "Exemplo isolado: nenhuma ordem real é excluída.",
+      "inseridas": [
+        "EX-0",
+        "EX-5",
+        "EX-11"
+      ],
+      "antes": {
+        "metodo": "divisao",
+        "capacidade": 5,
+        "quantidade": 3,
+        "fator_carga": 0.6,
+        "baldes_ocupados": 1,
+        "colisoes_atuais": 2,
+        "maior_cadeia": 3,
+        "redimensionamentos": 0,
+        "baldes": [
+          {
+            "indice": 0,
+            "chaves": [
+              "EX-0",
+              "EX-5",
+              "EX-11"
+            ]
+          },
+          {
+            "indice": 1,
+            "chaves": []
+          },
+          {
+            "indice": 2,
+            "chaves": []
+          },
+          {
+            "indice": 3,
+            "chaves": []
+          },
+          {
+            "indice": 4,
+            "chaves": []
+          }
+        ]
+      },
+      "busca": {
+        "chave": "EX-11",
+        "codigo": 66389370,
+        "indice": 0,
+        "metodo": "divisao",
+        "encontrada": true,
+        "comparacoes": 3,
+        "chaves_visitadas": [
+          "EX-0",
+          "EX-5",
+          "EX-11"
+        ]
+      },
+      "removida": "EX-5",
+      "depois": {
+        "metodo": "divisao",
+        "capacidade": 5,
+        "quantidade": 2,
+        "fator_carga": 0.4,
+        "baldes_ocupados": 1,
+        "colisoes_atuais": 1,
+        "maior_cadeia": 2,
+        "redimensionamentos": 0,
+        "baldes": [
+          {
+            "indice": 0,
+            "chaves": [
+              "EX-0",
+              "EX-11"
+            ]
+          },
+          {
+            "indice": 1,
+            "chaves": []
+          },
+          {
+            "indice": 2,
+            "chaves": []
+          },
+          {
+            "indice": 3,
+            "chaves": []
+          },
+          {
+            "indice": 4,
+            "chaves": []
+          }
+        ]
+      },
+      "busca_apos_remocao": {
+        "chave": "EX-11",
+        "codigo": 66389370,
+        "indice": 0,
+        "metodo": "divisao",
+        "encontrada": true,
+        "comparacoes": 2,
+        "chaves_visitadas": [
+          "EX-0",
+          "EX-11"
+        ]
+      }
+    },
+    "multiplicacao": {
+      "aviso": "Exemplo isolado: nenhuma ordem real é excluída.",
+      "inseridas": [
+        "EX-0",
+        "EX-5",
+        "EX-10"
+      ],
+      "antes": {
+        "metodo": "multiplicacao",
+        "capacidade": 5,
+        "quantidade": 3,
+        "fator_carga": 0.6,
+        "baldes_ocupados": 1,
+        "colisoes_atuais": 2,
+        "maior_cadeia": 3,
+        "redimensionamentos": 0,
+        "baldes": [
+          {
+            "indice": 0,
+            "chaves": []
+          },
+          {
+            "indice": 1,
+            "chaves": []
+          },
+          {
+            "indice": 2,
+            "chaves": [
+              "EX-0",
+              "EX-5",
+              "EX-10"
+            ]
+          },
+          {
+            "indice": 3,
+            "chaves": []
+          },
+          {
+            "indice": 4,
+            "chaves": []
+          }
+        ]
+      },
+      "busca": {
+        "chave": "EX-10",
+        "codigo": 66389369,
+        "indice": 2,
+        "metodo": "multiplicacao",
+        "encontrada": true,
+        "comparacoes": 3,
+        "chaves_visitadas": [
+          "EX-0",
+          "EX-5",
+          "EX-10"
+        ]
+      },
+      "removida": "EX-5",
+      "depois": {
+        "metodo": "multiplicacao",
+        "capacidade": 5,
+        "quantidade": 2,
+        "fator_carga": 0.4,
+        "baldes_ocupados": 1,
+        "colisoes_atuais": 1,
+        "maior_cadeia": 2,
+        "redimensionamentos": 0,
+        "baldes": [
+          {
+            "indice": 0,
+            "chaves": []
+          },
+          {
+            "indice": 1,
+            "chaves": []
+          },
+          {
+            "indice": 2,
+            "chaves": [
+              "EX-0",
+              "EX-10"
+            ]
+          },
+          {
+            "indice": 3,
+            "chaves": []
+          },
+          {
+            "indice": 4,
+            "chaves": []
+          }
+        ]
+      },
+      "busca_apos_remocao": {
+        "chave": "EX-10",
+        "codigo": 66389369,
+        "indice": 2,
+        "metodo": "multiplicacao",
+        "encontrada": true,
+        "comparacoes": 2,
+        "chaves_visitadas": [
+          "EX-0",
+          "EX-10"
+        ]
+      }
+    },
+    "dobramento": {
+      "aviso": "Exemplo isolado: nenhuma ordem real é excluída.",
+      "inseridas": [
+        "EX-0",
+        "EX-5",
+        "EX-11"
+      ],
+      "antes": {
+        "metodo": "dobramento",
+        "capacidade": 5,
+        "quantidade": 3,
+        "fator_carga": 0.6,
+        "baldes_ocupados": 1,
+        "colisoes_atuais": 2,
+        "maior_cadeia": 3,
+        "redimensionamentos": 0,
+        "baldes": [
+          {
+            "indice": 0,
+            "chaves": [
+              "EX-0",
+              "EX-5",
+              "EX-11"
+            ]
+          },
+          {
+            "indice": 1,
+            "chaves": []
+          },
+          {
+            "indice": 2,
+            "chaves": []
+          },
+          {
+            "indice": 3,
+            "chaves": []
+          },
+          {
+            "indice": 4,
+            "chaves": []
+          }
+        ]
+      },
+      "busca": {
+        "chave": "EX-11",
+        "codigo": 66389370,
+        "indice": 0,
+        "metodo": "dobramento",
+        "encontrada": true,
+        "comparacoes": 3,
+        "chaves_visitadas": [
+          "EX-0",
+          "EX-5",
+          "EX-11"
+        ]
+      },
+      "removida": "EX-5",
+      "depois": {
+        "metodo": "dobramento",
+        "capacidade": 5,
+        "quantidade": 2,
+        "fator_carga": 0.4,
+        "baldes_ocupados": 1,
+        "colisoes_atuais": 1,
+        "maior_cadeia": 2,
+        "redimensionamentos": 0,
+        "baldes": [
+          {
+            "indice": 0,
+            "chaves": [
+              "EX-0",
+              "EX-11"
+            ]
+          },
+          {
+            "indice": 1,
+            "chaves": []
+          },
+          {
+            "indice": 2,
+            "chaves": []
+          },
+          {
+            "indice": 3,
+            "chaves": []
+          },
+          {
+            "indice": 4,
+            "chaves": []
+          }
+        ]
+      },
+      "busca_apos_remocao": {
+        "chave": "EX-11",
+        "codigo": 66389370,
+        "indice": 0,
+        "metodo": "dobramento",
+        "encontrada": true,
+        "comparacoes": 2,
+        "chaves_visitadas": [
+          "EX-0",
+          "EX-11"
+        ]
+      }
+    }
+  },
+  "rota": {
+    "origem": "P-0001",
+    "destino": "P-0005",
+    "encontrada": true,
+    "caminho": [
+      "P-0001",
+      "P-0002",
+      "P-0004",
+      "P-0005"
+    ],
+    "locais": [
+      {
+        "id": "P-0001",
+        "nome": "Assistência · exemplo",
+        "latitude": -10.12,
+        "longitude": -36.175,
+        "ordem_id": null
+      },
+      {
+        "id": "P-0002",
+        "nome": "Ponto de apoio · exemplo",
+        "latitude": -10.115,
+        "longitude": -36.166,
+        "ordem_id": null
+      },
+      {
+        "id": "P-0004",
+        "nome": "Coleta B · exemplo",
+        "latitude": -10.117,
+        "longitude": -36.153,
+        "ordem_id": "OS-0002"
+      },
+      {
+        "id": "P-0005",
+        "nome": "Entrega C · exemplo",
+        "latitude": -10.108,
+        "longitude": -36.149,
+        "ordem_id": "OS-0003"
+      }
+    ],
+    "distancia_km": 3.2,
+    "visitados_dijkstra": [
+      "P-0001",
+      "P-0002",
+      "P-0003",
+      "P-0004",
+      "P-0005"
+    ],
+    "alcancaveis_bfs": [
+      "P-0001",
+      "P-0002",
+      "P-0003",
+      "P-0004",
+      "P-0005"
+    ],
+    "algoritmo": "Dijkstra",
+    "complexidade": "O(V² + E)",
+    "aviso": "Melhor caminho apenas na rede cadastrada. Não representa trânsito ou ruas reais."
+  },
+  "ordenacao": {
+    "cenario": "aleatorio",
+    "tamanho": 250,
+    "tamanhos": [
+      62,
+      125,
+      250
+    ],
+    "repeticoes": 3,
+    "semente": 42,
+    "resultados": [
+      {
+        "tamanho": 62,
+        "metodo": "bolha",
+        "nome": "Bolha",
+        "mediana_ms": 0.441709,
+        "minimo_ms": 0.441318,
+        "maximo_ms": 0.537882,
+        "tempos_ms": [
+          0.537882,
+          0.441318,
+          0.441709
+        ],
+        "comparacoes": 1890,
+        "movimentos": 2052
+      },
+      {
+        "tamanho": 62,
+        "metodo": "insercao",
+        "nome": "Inserção",
+        "mediana_ms": 0.268991,
+        "minimo_ms": 0.252095,
+        "maximo_ms": 0.318064,
+        "tempos_ms": [
+          0.318064,
+          0.252095,
+          0.268991
+        ],
+        "comparacoes": 1083,
+        "movimentos": 1087
+      },
+      {
+        "tamanho": 62,
+        "metodo": "selecao",
+        "nome": "Seleção",
+        "mediana_ms": 0.338084,
+        "minimo_ms": 0.323703,
+        "maximo_ms": 0.341069,
+        "tempos_ms": [
+          0.323703,
+          0.338084,
+          0.341069
+        ],
+        "comparacoes": 1891,
+        "movimentos": 112
+      },
+      {
+        "tamanho": 62,
+        "metodo": "quicksort",
+        "nome": "QuickSort",
+        "mediana_ms": 0.130865,
+        "minimo_ms": 0.129523,
+        "maximo_ms": 0.133669,
+        "tempos_ms": [
+          0.133669,
+          0.129523,
+          0.130865
+        ],
+        "comparacoes": 421,
+        "movimentos": 476
+      },
+      {
+        "tamanho": 125,
+        "metodo": "bolha",
+        "nome": "Bolha",
+        "mediana_ms": 1.813585,
+        "minimo_ms": 1.795178,
+        "maximo_ms": 1.851641,
+        "tempos_ms": [
+          1.795178,
+          1.851641,
+          1.813585
+        ],
+        "comparacoes": 7672,
+        "movimentos": 7612
+      },
+      {
+        "tamanho": 125,
+        "metodo": "insercao",
+        "nome": "Inserção",
+        "mediana_ms": 0.936977,
+        "minimo_ms": 0.922977,
+        "maximo_ms": 0.99265,
+        "tempos_ms": [
+          0.936977,
+          0.922977,
+          0.99265
+        ],
+        "comparacoes": 3925,
+        "movimentos": 3930
+      },
+      {
+        "tamanho": 125,
+        "metodo": "selecao",
+        "nome": "Seleção",
+        "mediana_ms": 1.341781,
+        "minimo_ms": 1.314891,
+        "maximo_ms": 1.377935,
+        "tempos_ms": [
+          1.377935,
+          1.341781,
+          1.314891
+        ],
+        "comparacoes": 7750,
+        "movimentos": 236
+      },
+      {
+        "tamanho": 125,
+        "metodo": "quicksort",
+        "nome": "QuickSort",
+        "mediana_ms": 0.28875,
+        "minimo_ms": 0.268371,
+        "maximo_ms": 0.299957,
+        "tempos_ms": [
+          0.299957,
+          0.268371,
+          0.28875
+        ],
+        "comparacoes": 874,
+        "movimentos": 932
+      },
+      {
+        "tamanho": 250,
+        "metodo": "bolha",
+        "nome": "Bolha",
+        "mediana_ms": 7.206337,
+        "minimo_ms": 7.142791,
+        "maximo_ms": 7.226026,
+        "tempos_ms": [
+          7.226026,
+          7.142791,
+          7.206337
+        ],
+        "comparacoes": 30825,
+        "movimentos": 31024
+      },
+      {
+        "tamanho": 250,
+        "metodo": "insercao",
+        "nome": "Inserção",
+        "mediana_ms": 3.797824,
+        "minimo_ms": 3.773357,
+        "maximo_ms": 3.802861,
+        "tempos_ms": [
+          3.802861,
+          3.773357,
+          3.797824
+        ],
+        "comparacoes": 15757,
+        "movimentos": 15761
+      },
+      {
+        "tamanho": 250,
+        "metodo": "selecao",
+        "nome": "Seleção",
+        "mediana_ms": 5.285913,
+        "minimo_ms": 5.26317,
+        "maximo_ms": 5.30414,
+        "tempos_ms": [
+          5.26317,
+          5.285913,
+          5.30414
+        ],
+        "comparacoes": 31125,
+        "movimentos": 488
+      },
+      {
+        "tamanho": 250,
+        "metodo": "quicksort",
+        "nome": "QuickSort",
+        "mediana_ms": 0.691201,
+        "minimo_ms": 0.679704,
+        "maximo_ms": 0.694816,
+        "tempos_ms": [
+          0.694816,
+          0.679704,
+          0.691201
+        ],
+        "comparacoes": 2207,
+        "movimentos": 2852
+      }
+    ],
+    "menor_mediana": "QuickSort",
+    "dados": "Ordens sintéticas com chave numérica; cadastro real preservado.",
+    "metodologia": "Mesmas entradas e cópias independentes; aquecimento; perf_counter_ns; mediana. Tempos incluem a instrumentação de comparações e movimentos. Resultados dependem do cenário e do computador."
+  }
+}
