@@ -175,9 +175,10 @@ python demo_unidade2.py
 A suíte tem 72 testes cobrindo as estruturas, regras e APIs, incluindo servidor
 HTTP local, colisões, reindexação sem perda, todas as ordenações, pesos inválidos,
 remoção de vértices, destinos desconectados e gráficos PNG gerados de verdade.
-A sintaxe JavaScript e as figuras também foram conferidas. A interação visual
-completa no navegador deve ser conferida no computador da apresentação; o
-navegador remoto deste ambiente não conseguiu abrir o endereço local.
+A versão mantida está na raiz do projeto. Os testes de navegador verificam
+cadastro, atendimento, peças, conclusão, revisão, falhas isoladas de rotas/hash
+e telas de celular. As capturas ficam em `test-results/`.
 
-Teste opcional dos formulários JavaScript, com Node.js: `node tests/test_interface.cjs`.
-Esse teste verifica o módulo com respostas simuladas e não substitui interação no navegador.
+Testes JavaScript: `node tests/test_interface.cjs` e
+`node tests/test_carregamento.cjs`. Para os testes no navegador, veja os comandos
+de instalação e `npm run test:e2e` no [README](README.md).

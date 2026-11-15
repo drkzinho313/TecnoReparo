@@ -13,6 +13,10 @@
       this.exemplo = null;
       this.ocupado = false;
       this.rascunhos = {};
+      this.cargas = {
+        rotas: { carregada: false, erro: null, pendente: null },
+        analises: { carregada: false, erro: null, pendente: null }
+      };
       document.addEventListener("input", (evento) => {
         const form = evento.target.closest("form[data-u2-form]");
         if (form) this.rascunhos[form.dataset.u2Form] = Object.fromEntries(new FormData(form));
@@ -32,12 +36,48 @@
         if (botao && !botao.disabled) this.acao(botao);
       });
     }
-    async carregar() {
-      const [rede, indice] = await Promise.all([this.api.request("/api/rotas"), this.api.request("/api/indice")]);
-      if (JSON.stringify(rede) !== JSON.stringify(this.rede)) { this.rota = null; this.graficoRede = null; }
-      if (this.indice && this.indice.metodo !== indice.metodo) this.consulta = null;
-      this.rede = rede;
-      this.indice = indice;
+    async carregar(area) {
+      const areas = area === undefined ? ["rotas", "analises"] : [area];
+      await Promise.all(areas.filter((nome) => this.cargas[nome]).map((nome) => this.carregarArea(nome)));
+    }
+    carregarArea(area) {
+      const carga = this.cargas[area];
+      if (carga.pendente) return carga.pendente;
+      carga.erro = null;
+      carga.pendente = Promise.resolve().then(async () => {
+        try {
+          if (area === "rotas") {
+            const rede = await this.api.request("/api/rotas");
+            if (JSON.stringify(rede) !== JSON.stringify(this.rede)) { this.rota = null; this.graficoRede = null; }
+            this.rede = rede;
+          } else {
+            const indice = await this.api.request("/api/indice");
+            // Consultas e exemplos anteriores podem ficar obsoletos após novos cadastros.
+            this.consulta = null;
+            if (this.indice && this.indice.metodo !== indice.metodo) this.exemplo = null;
+            this.indice = indice;
+          }
+          carga.carregada = true;
+        } catch (erro) {
+          carga.erro = erro.message;
+        } finally {
+          carga.pendente = null;
+          this.renderizar();
+        }
+      });
+      this.renderizar();
+      return carga.pendente;
+    }
+    estadoCarregamento(area) {
+      const carga = this.cargas[area];
+      const nome = area === "rotas" ? "Rotas" : "Análises";
+      if (carga.erro) {
+        return `<section class="panel"><div class="panel-body" role="alert"><h2>${nome} temporariamente indisponíveis</h2><p>${this.escape(carga.erro)}</p><p>Os atendimentos continuam disponíveis nas outras telas.</p><button type="button" class="button button-secondary" data-u2-action="recarregar" data-area="${area}">${this.icon("refresh")}Tentar novamente</button></div></section>`;
+      }
+      if (carga.pendente || !carga.carregada) {
+        return `<section class="panel" aria-busy="true"><div class="panel-body" role="status">Carregando ${nome.toLowerCase()}…</div></section>`;
+      }
+      return "";
     }
     numero(valor, casas = 2) { return Number(valor).toLocaleString("pt-BR", { maximumFractionDigits: casas, minimumFractionDigits: casas }); }
     valor(form, campo, padrao = "") { return this.rascunhos[form]?.[campo] ?? padrao; }
@@ -63,6 +103,8 @@
       return `<figure class="u2-figure"><div class="u2-figure-scroll"><img src="${this.escape(dados)}" alt="${this.escape(descricao)}"></div><figcaption>Gerado pelo Matplotlib com os dados desta sessão.<a class="subtle-link" href="${this.escape(dados)}" download="${nome}.png">Baixar PNG ${this.icon("arrow-down")}</a></figcaption></figure>`;
     }
     renderRotas() {
+      const estado = this.estadoCarregamento("rotas");
+      if (estado) return estado;
       const e = this.escape, pontos = this.rede.pontos, rota = this.rota;
       const resultado = rota ? `<div class="u2-result" role="status"><strong>${rota.encontrada ? this.numero(rota.distancia_km) + " km · caminho encontrado" : "Não há caminho entre esses locais"}</strong><p>${rota.encontrada ? rota.locais.map((p) => e(p.nome)).join(" → ") : "Cadastre uma conexão para alcançar o destino."}</p><small>Dijkstra: ${rota.visitados_dijkstra.length} locais visitados. Busca em largura: ${rota.alcancaveis_bfs.length} locais alcançáveis a partir da origem.</small></div>` : "";
       return `<div class="u2-root" aria-busy="${this.ocupado}">
@@ -83,6 +125,8 @@
         <section class="panel"><header class="panel-header"><div><h2>Conexões disponíveis</h2><p>Pesos usados no cálculo do menor caminho.</p></div></header><div class="u2-list">${this.rede.trechos.length ? this.rede.trechos.map((t) => `<div class="u2-list-row"><div><strong>${e(this.nome(t.origem))} ↔ ${e(this.nome(t.destino))}</strong><small>${this.numero(t.distancia_km)} km · ${t.medida === "informada" ? "distância informada" : "aproximação geográfica"}</small></div><button type="button" class="icon-button" data-u2-action="remover-conexao" data-origem="${e(t.origem)}" data-destino="${e(t.destino)}" aria-label="Remover conexão entre ${e(this.nome(t.origem))} e ${e(this.nome(t.destino))}" ${this.bloqueado()}>${this.icon("trash")}</button></div>`).join("") : '<p class="helper-text">Nenhuma conexão cadastrada.</p>'}</div></section></div></div>`;
     }
     renderAnalises() {
+      const estado = this.estadoCarregamento("analises");
+      if (estado) return estado;
       const e = this.escape, indice = this.indice;
       if (!indice) return '<p class="helper-text">Aguardando os dados do servidor.</p>';
       const metodos = [["divisao", "Divisão"], ["multiplicacao", "Multiplicação"], ["dobramento", "Dobramento"]];
@@ -140,6 +184,7 @@
       }, { altera: true, mensagem: "Conexão salva. Calcule novamente para atualizar a rota." });
     }
     async acao(botao) {
+      if (botao.dataset.u2Action === "recarregar") return this.carregar(botao.dataset.area);
       if (this.ocupado || !this.disponivel()) return;
       const acao = botao.dataset.u2Action;
       if (acao === "mapa") return this.operar(botao, async () => { this.graficoRede = (await this.api.request("/api/rotas/mapa")).grafico; this.rota = null; });

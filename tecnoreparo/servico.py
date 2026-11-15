@@ -5,6 +5,9 @@ from __future__ import annotations
 from copy import copy, deepcopy
 
 from .estruturas import Deque, Fila, VetorFixo
+from .tabela_hash import TabelaHash
+from .grafo import GrafoRotas
+from .ordenacao import ComparadorOrdenacao, Ordenador
 from .modelos import (
     ConflitoError,
     Equipamento,
@@ -36,7 +39,8 @@ class TecnoReparo:
         self._bancadas: VetorFixo[str] = VetorFixo(quantidade_bancadas)
         self._fila: Fila[str] = Fila()
         self._revisoes: Deque[PedidoRevisao] = Deque()
-        self._ordens: dict[str, OrdemServico] = {}
+        self._ordens: TabelaHash[OrdemServico] = TabelaHash()
+        self._rotas = GrafoRotas()
         self._series_ativas: set[str] = set()
         self._proximo_id = 1
 
@@ -92,17 +96,104 @@ class TecnoReparo:
     def obter_ordem(self, ordem_id: str) -> dict:
         return self._ordem(ordem_id).para_dict()
 
-    def listar_ordens(self, status: str | None = None) -> list[dict]:
+    def listar_ordens(self, status: str | None = None, ordenar_por=None, metodo="quicksort", descendente=False) -> list[dict]:
         if status is not None and (
             not isinstance(status, str) or status not in {s.value for s in StatusOrdem}
         ):
             raise ValidacaoError("Status inválido.")
         # Compreensão de lista para filtrar sem alterar o cadastro.
-        return [
+        ordens = [
             ordem.para_dict()
             for ordem in self._ordens.values()
             if status is None or ordem.status.value == status
         ]
+        if type(descendente) is not bool:
+            raise ValidacaoError("descendente deve ser um booleano.")
+        if ordenar_por is not None:
+            chaves = {"id": lambda o: int(o["id"].split("-")[1]),
+                      "cliente": lambda o: o["cliente"]["nome"].casefold(),
+                      "equipamento": lambda o: o["equipamento"]["tipo"].casefold()}
+            if not isinstance(ordenar_por, str) or ordenar_por not in chaves:
+                raise ValidacaoError("Ordene por id, cliente ou equipamento.")
+            Ordenador().ordenar(ordens, metodo, chaves[ordenar_por])
+            if descendente:
+                ordens.reverse()
+        return ordens
+
+    def indice_hash(self):
+        return self._ordens.estatisticas()
+
+    def consultar_indice(self, chave):
+        chave = validar_texto(chave, "chave", 30).upper()
+        rastro = self._ordens.rastrear(chave)
+        rastro["ordem"] = self.obter_ordem(chave) if rastro["encontrada"] else None
+        return rastro
+
+    def configurar_indice(self, metodo):
+        if metodo not in TabelaHash.METODOS:
+            raise ValidacaoError("Escolha divisao, multiplicacao ou dobramento.")
+        nova = TabelaHash(len(self._ordens.estatisticas()["baldes"]), metodo)
+        for chave in self._ordens:
+            nova[chave] = self._ordens[chave]
+        self._ordens = nova
+        return self.indice_hash()
+
+    def demonstrar_hash(self, metodo="divisao"):
+        if metodo not in TabelaHash.METODOS:
+            raise ValidacaoError("Método hash inválido.")
+        return TabelaHash.demonstrar(metodo)
+
+    def comparar_ordenacao(self, tamanho=250, cenario="aleatorio", repeticoes=3, semente=42):
+        from .graficos import Graficos
+        resultado = ComparadorOrdenacao().executar(tamanho, cenario, repeticoes, semente)
+        resultado["grafico"] = Graficos.ordenacao(resultado)
+        return resultado
+
+    def estado_rotas(self):
+        return self._rotas.estado()
+
+    def cadastrar_local(self, nome, latitude, longitude, ordem_id=None):
+        if ordem_id is not None:
+            ordem_id = self._ordem(ordem_id).id
+        return self._rotas.adicionar_ponto(nome, latitude, longitude, ordem_id)
+
+    def remover_local(self, ponto_id):
+        return self._rotas.remover_ponto(ponto_id)
+
+    def conectar_locais(self, origem, destino, distancia_km=None):
+        return self._rotas.conectar(origem, destino, distancia_km)
+
+    def desconectar_locais(self, origem, destino):
+        return self._rotas.desconectar(origem, destino)
+
+    def mapa_rotas(self):
+        from .graficos import Graficos
+        return {"grafico": Graficos.rede(self.estado_rotas())}
+
+    def calcular_rota(self, origem, destino):
+        from .graficos import Graficos
+        resultado = self._rotas.menor_caminho(origem, destino)
+        resultado["grafico"] = Graficos.rede(self.estado_rotas(), resultado)
+        return resultado
+
+    def exemplo_rotas(self):
+        if self._rotas.estado()["pontos"]:
+            raise ConflitoError("O exemplo só pode ser carregado em uma rede vazia.")
+        pontos = [
+            ("Assistência · exemplo", -10.120, -36.175, None),
+            ("Ponto de apoio · exemplo", -10.115, -36.166, None),
+            ("Coleta A · exemplo", -10.106, -36.170, "OS-0001"),
+            ("Coleta B · exemplo", -10.117, -36.153, "OS-0002"),
+            ("Entrega C · exemplo", -10.108, -36.149, "OS-0003"),
+            ("Local desconectado · exemplo", -10.132, -36.150, None),
+        ]
+        ids = []
+        for nome, lat, lon, ordem in pontos:
+            vinculo = ordem if ordem and ordem in self._ordens else None
+            ids.append(self.cadastrar_local(nome, lat, lon, vinculo)["id"])
+        for a, b, km in ((0, 1, 1.0), (1, 2, 1.1), (0, 2, 3.4), (1, 3, 1.5), (3, 4, 0.7), (2, 4, 3.8), (0, 3, 4.0)):
+            self.conectar_locais(ids[a], ids[b], km)
+        return self.estado_rotas()
 
     def atender_proximo(self, origem: str = "fila") -> dict:
         """A seleção da origem é explícita: FIFO comum ou deque de revisões."""
@@ -256,9 +347,6 @@ class TecnoReparo:
             "por_status": por_status,
             "tipos_de_equipamento": sorted(tipos),
             "indices_bancadas_livres": livres,
-            "bancadas_ocupadas": len(self._bancadas) - len(livres),
-            "ordens_na_fila": len(self._fila),
-            "revisoes_pendentes": len(self._revisoes),
         }
 
     def analisar_recursao(self, ordem_id: str) -> dict:
@@ -319,5 +407,3 @@ class TecnoReparo:
             "ausente": {"comparacoes": vetor.buscar(-1).comparacoes, "tempo": "O(n)"},
             "nota": "Os custos descrevem uma busca. O experimento faz n buscas e custa O(n²).",
         }
-        
-        

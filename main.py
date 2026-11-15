@@ -16,6 +16,10 @@ def main() -> None:
     parser.add_argument("--demo", action="store_true", help="Carrega três ordens fictícias.")
     parser.add_argument("--origem-frontend", action="append", default=[], help="Origem CORS exata; pode repetir.")
     args = parser.parse_args()
+    try:
+        import matplotlib  # Confere a dependência dos gráficos antes de abrir o servidor.
+    except ModuleNotFoundError:
+        parser.error("Instale as dependências com: python -m pip install -r requirements.txt")
     if not 1 <= args.bancadas <= 1000 or not 1 <= args.porta <= 65535:
         parser.error("Use 1..1000 bancadas e porta 1..65535.")
     servico = TecnoReparo(args.bancadas)
@@ -36,6 +40,7 @@ def main() -> None:
             )
         primeira = servico.atender_proximo()
         servico.retirar_peca(primeira["id"], "Tampa")
+        servico.exemplo_rotas()
     app = AplicacaoTecnoReparo(ApiTecnoReparo(servico, tuple(args.origem_frontend)))
     with make_server(args.host, args.porta, app) as servidor:
         print(f"TecnoReparo: http://{args.host}:{args.porta}", flush=True)
