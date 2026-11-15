@@ -1,0 +1,12 @@
+{
+  "name": "tecnoreparo-tests",
+  "private": true,
+  "description": "Ferramentas opcionais para testar a interface; o sistema não depende de Node.js.",
+  "scripts": {
+    "test": "node tests/test_interface.cjs && node tests/test_carregamento.cjs",
+    "test:e2e": "node tests/test_navegador.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
+}

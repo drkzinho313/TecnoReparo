@@ -20,7 +20,7 @@
   };
   const VIEWS = {
     painel: "Visão geral", ordens: "Ordens de serviço", revisoes: "Revisões",
-    relatorios: "Relatórios", laboratorio: "Laboratório"
+    relatorios: "Relatórios", laboratorio: "Oficina", rotas: "Rotas", analises: "Análises"
   };
   const state = {
     view: VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : "painel",
@@ -29,14 +29,14 @@
     online: false, loaded: false, busy: false, refreshing: false,
     query: "", filter: "todos", selectedId: null, drawerTab: "reparo",
     stepDraft: "", partDraft: "", reviewId: null,
-    confirmation: null
+    confirmation: null, orderSort: "id", sortMethod: "quicksort", descending: true
   };
 
   class ApiClient {
     constructor() { this.pending = 0; }
-    async request(path, { method = "GET", data } = {}) {
+    async request(path, { method = "GET", data, timeoutMs = 12000 } = {}) {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 12000);
+      const timeout = setTimeout(() => controller.abort(), timeoutMs);
       this.pending += 1;
       $("#network-progress").hidden = false;
       try {
@@ -67,6 +67,11 @@
     }
   }
   const api = new ApiClient();
+  const unidade2 = new window.TecnoUnidade2({
+    api, escape, icon, toast, confirmAction, atualizar: loadData,
+    renderizar: () => { if (["rotas", "analises"].includes(state.view)) renderView(); },
+    ordens: () => state.orders, disponivel: () => state.online && !state.busy && !state.refreshing
+  });
 
   function badge(status) {
     const info = STATUS[status] || { label: status, color: "" };
@@ -122,7 +127,7 @@
   }
   function filteredOrders() {
     const query = normalize(state.query);
-    return [...state.orders].reverse().filter((order) => {
+    return state.orders.filter((order) => {
       const statusMatches = state.view !== "ordens" || state.filter === "todos" || order.status === state.filter;
       const searchable = [order.id, order.cliente.nome, order.equipamento.tipo, order.equipamento.numero_serie, order.equipamento.defeito].join(" ");
       return statusMatches && (!query || normalize(searchable).includes(query));
@@ -141,9 +146,14 @@
   }
   function orderPanel(compact = false) {
     const filters = [["todos", "Todas"], ...Object.entries(STATUS).map(([value, info]) => [value, info.label])];
-    return `<section class="panel"><header class="panel-header"><div><h2>${compact ? "Ordens recentes" : "Todos os atendimentos"}</h2><p>${compact ? "Acompanhe o que está acontecendo na oficina." : "Encontre um equipamento e acompanhe cada etapa."}</p></div>${compact ? `<a class="subtle-link" href="#ordens">Ver todas ${icon("arrow")}</a>` : ""}</header>
+    return `<section class="panel"><header class="panel-header"><div><h2>${compact ? "Ordens de serviço" : "Todos os atendimentos"}</h2><p>${compact ? "Acompanhe o que está acontecendo na oficina." : "Encontre um equipamento e acompanhe cada etapa."}</p></div>${compact ? `<a class="subtle-link" href="#ordens">Ver todas ${icon("arrow")}</a>` : ""}</header>
       ${compact ? "" : `<div class="filters" aria-label="Filtrar ordens por situação">${filters.map(([value, name]) => `<button class="filter-tab ${state.filter === value ? "active" : ""}" aria-pressed="${state.filter === value}" data-action="filter" data-filter="${value}">${name}</button>`).join("")}</div>`}
       <div class="table-toolbar"><label class="search-field">${icon("search")}<input id="order-search" aria-label="Buscar ordens" value="${escape(state.query)}" placeholder="Buscar por cliente, ordem ou equipamento…" type="search" autocomplete="off"></label><span class="result-count" id="result-count">${filteredOrders().length} ordens</span></div>
+      ${compact ? "" : `<div class="order-sort-controls">
+        <label class="field">Ordenar por<select data-order-sort="orderSort" ${writable()}>${[["id", "Número da ordem"], ["cliente", "Cliente"], ["equipamento", "Equipamento"]].map(([key, label]) => `<option value="${key}" ${state.orderSort === key ? "selected" : ""}>${label}</option>`).join("")}</select></label>
+        <label class="field">Algoritmo<select data-order-sort="sortMethod" ${writable()}>${[["bolha", "Bolha"], ["insercao", "Inserção"], ["selecao", "Seleção"], ["quicksort", "QuickSort"]].map(([key, label]) => `<option value="${key}" ${state.sortMethod === key ? "selected" : ""}>${label}</option>`).join("")}</select></label>
+        <label class="field">Direção<select data-order-sort="descending" ${writable()}><option value="false" ${!state.descending ? "selected" : ""}>Crescente</option><option value="true" ${state.descending ? "selected" : ""}>Decrescente</option></select></label>
+        <span class="helper-text">Ordenação pelo backend; a fila de atendimento mantém sua ordem.</span></div>`}
       <div id="orders-result">${tableContent(compact)}</div></section>`;
   }
   function renderDashboard() {
@@ -179,9 +189,9 @@
       empty("Aguardando o primeiro cadastro", "Os tipos de equipamento aparecerão aqui.", { compact: true })}</div></section></div>`;
   }
   function renderLab() {
-    return heading("Por dentro do TecnoReparo.", "Explore as estruturas de dados que organizam o sistema.", { eyebrow: "LABORATÓRIO · UNIDADE I", create: false }) +
-      `<div class="lab-intro">${icon("code")}<p>Os dados abaixo vêm do backend Python. Vetor, lista encadeada, fila, pilha e deque trabalham juntos nos atendimentos.</p></div>
-      <div class="lab-grid"><section class="panel"><header class="panel-header"><div><h2>Vetor de bancadas</h2><p>Acesso por índice: O(1).</p></div></header><div class="panel-body"><div class="structure-strip">${state.workshop.bancadas.map((bench) => `<div class="structure-node"><small>ÍNDICE ${bench.indice}</small>${escape(bench.ordem_id || "Livre")}</div>`).join("")}</div></div></section>
+    return heading("Organização da oficina.", "Acompanhe as bancadas e os próximos atendimentos em um só lugar.", { eyebrow: "OFICINA", create: false }) +
+      `<div class="lab-intro">${icon("info")}<p>Veja quais espaços estão disponíveis e a ordem dos equipamentos que aguardam atendimento.</p></div>
+      <div class="lab-grid"><section class="panel"><header class="panel-header"><div><h2>Ocupação das bancadas</h2><p>Disponibilidade atual dos espaços de trabalho.</p></div></header><div class="panel-body"><div class="structure-strip">${state.workshop.bancadas.map((bench) => `<div class="structure-node"><small>BANCADA ${bench.indice + 1}</small>${escape(bench.ordem_id || "Livre")}</div>`).join("")}</div></div></section>
       <section class="panel"><header class="panel-header"><div><h2>Fila de atendimento</h2><p>O primeiro a entrar é o primeiro a sair.</p></div></header><div class="panel-body"><div class="structure-strip">${state.workshop.fila.length ? state.workshop.fila.map((id, i) => `${i ? icon("arrow") : ""}<div class="structure-node"><small>${i ? "EM ESPERA" : "INÍCIO"}</small>${escape(id)}</div>`).join("") : `<p class="helper-text">A fila está vazia.</p>`}</div></div></section>
       </div>`;
   }
@@ -190,7 +200,9 @@
     const renders = {
       painel: renderDashboard,
       ordens: () => heading("Cada reparo, bem acompanhado.", "Cadastre, encontre e acompanhe os equipamentos da sua oficina.", { eyebrow: "ORDENS DE SERVIÇO" }) + orderPanel(),
-      revisoes: renderReviews, relatorios: renderReports, laboratorio: renderLab
+      revisoes: renderReviews, relatorios: renderReports, laboratorio: renderLab,
+      rotas: () => heading("Cada entrega, no caminho certo.", "Organize os pontos de coleta e encontre conexões entre eles.", { eyebrow: "COLETAS E ENTREGAS", create: false }) + unidade2.renderRotas(),
+      analises: () => heading("Entenda o desempenho da oficina.", "Consulte o índice de ordens e compare as formas de organizar os atendimentos.", { eyebrow: "ANÁLISES", create: false }) + unidade2.renderAnalises()
     };
     $("#main-content").innerHTML = `<div class="${animate ? "view-enter" : ""}">${renders[state.view]()}</div>`;
     $("#breadcrumb-current").textContent = VIEWS[state.view];
@@ -207,6 +219,7 @@
     syncWriteButtons();
   }
   function syncWriteButtons() {
+    unidade2.sincronizar();
     $$("[data-mutate]").forEach((button) => {
       button.disabled = state.busy || state.refreshing || !state.online || button.dataset.blocked === "true";
     });
@@ -223,7 +236,7 @@
   async function loadData() {
     try {
       const [orders, workshop, report] = await Promise.all([
-        api.request("/api/ordens"), api.request("/api/estado"), api.request("/api/relatorio")
+        api.request("/api/ordens?" + new URLSearchParams({ ordenar_por: state.orderSort, metodo: state.sortMethod, descendente: state.descending })), api.request("/api/estado"), api.request("/api/relatorio")
       ]);
       state.orders = orders;
       state.workshop = workshop;
@@ -234,6 +247,9 @@
       renderView({ animate: firstLoad });
       if ($("#order-drawer").open) renderDrawer();
       $("#last-updated").textContent = "Atualizado às " + new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" }).format(new Date());
+      // Áreas complementares têm carregamento e recuperação próprios.
+      // A oficina fica disponível sem esperar por rotas ou pelo índice hash.
+      void unidade2.carregar(state.view);
     } catch (error) {
       setConnection(false, error.message);
       if (!state.loaded) {
@@ -451,6 +467,12 @@
     else if (event.target.id === "part-input") state.partDraft = event.target.value;
   });
   document.addEventListener("change", async (event) => {
+    if (event.target.dataset.orderSort) {
+      const key = event.target.dataset.orderSort;
+      state[key] = key === "descending" ? event.target.value === "true" : event.target.value;
+      await refresh();
+      return;
+    }
     if (event.target.dataset.action === "toggle-step") {
       const checkbox = event.target;
       const id = state.selectedId;
@@ -514,7 +536,10 @@
     state.view = view;
     state.query = "";
     state.filter = "todos";
-    if (state.loaded) renderView({ animate: true });
+    if (state.loaded) {
+      renderView({ animate: true });
+      void unidade2.carregar(view);
+    }
     window.scrollTo({ top: 0, behavior: "instant" });
   });
 

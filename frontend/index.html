@@ -8,6 +8,7 @@
   <title>TecnoReparo — Sua oficina, em ordem.</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/assets/styles.css">
+  <script src="/assets/unidade2.js" defer></script>
   <script src="/assets/app.js" defer></script>
 </head>
 <body>
@@ -29,7 +30,9 @@
       <a href="#ordens" data-view="ordens" aria-label="Ordens de serviço" title="Ordens de serviço" class="nav-link"><svg class="icon"><use href="/assets/icons.svg#clipboard"></use></svg><span>Ordens de serviço</span><b id="nav-orders">0</b></a>
       <a href="#revisoes" data-view="revisoes" aria-label="Revisões" title="Revisões" class="nav-link"><svg class="icon"><use href="/assets/icons.svg#repeat"></use></svg><span>Revisões</span><b id="nav-reviews" hidden>0</b></a>
       <a href="#relatorios" data-view="relatorios" aria-label="Relatórios" title="Relatórios" class="nav-link"><svg class="icon"><use href="/assets/icons.svg#chart"></use></svg><span>Relatórios</span></a>
-      <a href="#laboratorio" data-view="laboratorio" aria-label="Laboratório" title="Laboratório" class="nav-link"><svg class="icon"><use href="/assets/icons.svg#layers"></use></svg><span>Laboratório</span></a>
+      <a href="#laboratorio" data-view="laboratorio" aria-label="Oficina" title="Oficina" class="nav-link"><svg class="icon"><use href="/assets/icons.svg#layers"></use></svg><span>Oficina</span></a>
+      <a href="#rotas" data-view="rotas" aria-label="Rotas" title="Rotas" class="nav-link"><svg class="icon"><use href="/assets/icons.svg#arrow"></use></svg><span>Rotas</span></a>
+      <a href="#analises" data-view="analises" aria-label="Análises" title="Análises" class="nav-link"><svg class="icon"><use href="/assets/icons.svg#chart"></use></svg><span>Análises</span></a>
     </nav>
     <div class="sidebar-bottom">
       <div class="workspace-note"><span class="note-icon"><svg class="icon"><use href="/assets/icons.svg#monitor"></use></svg></span><div><strong>Sua oficina conectada</strong><small>Do atendimento à entrega.</small></div></div>
@@ -54,7 +57,7 @@
     <main id="main-content" tabindex="-1">
       <div class="initial-skeleton" aria-hidden="true"><div class="skeleton skeleton-heading"></div><div class="skeleton skeleton-line"></div><div class="skeleton-grid"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div><div class="skeleton skeleton-panel"></div></div>
     </main>
-    <footer class="page-footer"><span>TecnoReparo <span class="footer-dot">·</span> Assistência técnica</span><span id="last-updated">Aguardando conexão</span></footer>
+    <footer class="page-footer"><span>TecnoReparo <span class="footer-dot">·</span> Simulador de assistência técnica</span><span id="last-updated">Aguardando conexão</span></footer>
   </div>
 
   <dialog id="order-drawer" class="drawer" aria-labelledby="drawer-title"><div id="drawer-content"></div></dialog>

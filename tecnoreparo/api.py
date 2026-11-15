@@ -47,6 +47,7 @@ class ApiTecnoReparo:
     ) -> None:
         padrao = caminho.replace("{ordem_id}", r"(?P<ordem_id>OS-[0-9]+)")
         padrao = padrao.replace("{etapa_id}", r"(?P<etapa_id>[0-9]+)")
+        padrao = padrao.replace("{ponto_id}", r"(?P<ponto_id>P-[0-9]+)")
         self._rotas.append(_Rota(
             metodo, caminho, re.compile(padrao), acao, status,
             set(campos.split()), set(obrigatorios.split()),
@@ -56,7 +57,7 @@ class ApiTecnoReparo:
         s = self.servico
         self._rota("GET", "/", lambda p, b, q: {
             "projeto": "TecnoReparo",
-            "versao": "2.0.0",
+            "versao": "3.0.0",
             "armazenamento": "em_memoria",
             "rotas": [
                 {"metodo": r.metodo, "caminho": r.caminho, "campos_json": sorted(r.permitidos)}
@@ -65,7 +66,9 @@ class ApiTecnoReparo:
         })
         self._rota("GET", "/api/estado", lambda p, b, q: s.estado())
         self._rota("GET", "/api/relatorio", lambda p, b, q: s.relatorio())
-        self._rota("GET", "/api/ordens", lambda p, b, q: s.listar_ordens(q.get("status", [None])[0]))
+        self._rota("GET", "/api/ordens", lambda p, b, q: s.listar_ordens(
+            q.get("status", [None])[0], q.get("ordenar_por", [None])[0],
+            q.get("metodo", ["quicksort"])[0], self._booleano_query(q.get("descendente", ["false"])[0])))
         cadastro = "nome_cliente contato numero_serie tipo defeito"
         self._rota(
             "POST", "/api/ordens", lambda p, b, q: s.registrar_ordem(**b),
@@ -125,6 +128,26 @@ class ApiTecnoReparo:
             "GET", "/api/analises/busca",
             lambda p, b, q: s.analisar_busca(self._inteiro_query(q.get("tamanho", ["8"])[0])),
         )
+        self._rota("GET", "/api/indice", lambda p, b, q: s.indice_hash())
+        self._rota("GET", "/api/indice/consulta", lambda p, b, q: s.consultar_indice(q.get("chave", [""])[0]))
+        self._rota("POST", "/api/indice/configurar", lambda p, b, q: s.configurar_indice(b["metodo"]), campos="metodo", obrigatorios="metodo")
+        self._rota("POST", "/api/indice/demonstrar", lambda p, b, q: s.demonstrar_hash(b.get("metodo", "divisao")), campos="metodo")
+        self._rota("POST", "/api/analises/ordenacao", lambda p, b, q: s.comparar_ordenacao(**b), campos="tamanho cenario repeticoes semente")
+        self._rota("GET", "/api/rotas", lambda p, b, q: s.estado_rotas())
+        self._rota("GET", "/api/rotas/mapa", lambda p, b, q: s.mapa_rotas())
+        self._rota("POST", "/api/rotas/exemplo", lambda p, b, q: s.exemplo_rotas(), status=201)
+        self._rota("POST", "/api/rotas/pontos", lambda p, b, q: s.cadastrar_local(**b), status=201,
+                   campos="nome latitude longitude ordem_id", obrigatorios="nome latitude longitude")
+        self._rota("DELETE", "/api/rotas/pontos/{ponto_id}", lambda p, b, q: s.remover_local(p["ponto_id"]))
+        self._rota("POST", "/api/rotas/conexoes", lambda p, b, q: s.conectar_locais(**b), campos="origem destino distancia_km", obrigatorios="origem destino")
+        self._rota("DELETE", "/api/rotas/conexoes", lambda p, b, q: s.desconectar_locais(**b), campos="origem destino", obrigatorios="origem destino")
+        self._rota("POST", "/api/rotas/calcular", lambda p, b, q: s.calcular_rota(**b), campos="origem destino", obrigatorios="origem destino")
+
+    @staticmethod
+    def _booleano_query(valor: str) -> bool:
+        if valor not in ("true", "false"):
+            raise ValidacaoError("descendente deve ser true ou false.")
+        return valor == "true"
 
     @staticmethod
     def _inteiro_query(valor: str) -> int:
